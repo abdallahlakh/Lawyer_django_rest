@@ -6,79 +6,11 @@ from rest_framework.response import Response
 import json
 import random
 from .serializers import LawyerSerializer,BookingSerializer,ReviewSerializer,LanguageSerializer, SpecialitiesSerializer
-
-class LawyerViewSet(generics.ListAPIView):
-    queryset = Lawyer.objects.all()
-    serializer_class = LawyerSerializer
-
-
-@api_view(['GET'])
-def lawyerapi(request,id):
-    if request.method =='GET' :
-       
-       lawyer = Lawyer.objects.get(pk=id)
-       lawyer_serializer =LawyerSerializer(lawyer) 
-
-       review = Review.objects.filter(lawyer_id=id)
-       review_serializer = ReviewSerializer(review,many=True)
-       return Response([lawyer_serializer.data,review_serializer.data])
-    
-
-@api_view(['GET','POST'])
-def booking(request,id) :
-
-    if request.method =='GET' :
-       
-       bookings = Booking.objects.filter(lawyer_id=id)
-       booking_serializer =BookingSerializer(bookings,many=True) 
-       return Response(booking_serializer.data)
-    
-    elif request.method == 'POST' :
-       booking_serializer=BookingSerializer(data=request.data)
-       if booking_serializer.is_valid():
-           booking_serializer.save()
-           return Response(booking_serializer.data)
-
-@api_view(['GET'])
-def mybookingslawyer(request) :
-    if request.method=='GET' :
-        mybookings = Booking.objects.filter(lawyer_id=1)
-        mybooking_serializer =BookingSerializer(mybookings,many=True) 
-        return Response(mybooking_serializer.data)
-
-
-@api_view(['GET','POST'])
-def mybookingsuser(request) :
-    
-    if request.method=='GET' :
-        reviews=Review.object.all()
-        review_serializer=ReviewSerializer(reviews)
-        return Response(review_serializer.data)
-    elif request.method == 'GET':
-        # Serialize data and return response
-        serializer_lawyer = LawyerSerializer(Lawyer.objects.all(), many=True)
-        serializer_language = LanguageSerializer(Language.objects.all(), many=True)
-        serializer_specialities = SpecialitiesSerializer(Specialities.objects.all(), many=True)
-        return Response({
-            "lawyers": serializer_lawyer.data,
-            "languages": serializer_language.data,
-            "specialities": serializer_specialities.data
-        })
-
-
-        mybookings = Booking.objects.filter(client_id=1)
-        mybooking_serializer =BookingSerializer(mybookings,many=True) 
-
-        review = Review.objects.filter(reviewer_id=1)
-        review_serializer = ReviewSerializer(review,many=True)
-        return Response([mybooking_serializer.data,review_serializer.data])
-    
-    
-    elif request.method=='POST' :
-         review_serializer=ReviewSerializer(data=request.data)
-         if review_serializer.is_valid():
-             review_serializer.save()
-             return Response(review_serializer.data)
+from django.db.models import Q
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .models import Lawyer
+from .serializers import LawyerSerializer
 
 
 
@@ -126,29 +58,38 @@ def lawyerData(request):
             lawyer_instance.specialities.set(speciality_instances)
 
         return Response({"data inserted to the database successfully!!"})
-    
-
-
-
+ 
 @api_view(['POST'])
 def searchLawyer(request):
     if request.method == 'POST':
-        name = request.data.get('name', '')
-        wilaya = request.data.get('location', '')
-        langue = request.data.get('langue', '')
-        categorie = request.data.get('categorie', '')
-        rating = request.data.get('rating', '')
-
-        lawyer_list = Lawyer.objects.filter(
+        name = request.data.get('lawyerName', '')
+        wilaya = request.data.get('wilaya', '')
+        langue = request.data.get('language', '')
+        categories_str = request.data.get('specialities', '') 
+        categories = [category.strip() for category in categories_str.split(',') if category.strip()]
+        lawyer_list = Lawyer.objects.all()
+        lawyer_list = lawyer_list.filter(
             Q(name__icontains=name) &
-            Q(location__icontains=wilaya) &
-            Q(specialities__name__icontains=categorie) & 
-            Q(rating__icontains=rating) &
-            Q(languages__name__icontains=langue)  
-        ).distinct()
+            Q(languages__name__icontains=langue)
+        )
 
-        serializer = LawyerSerializer(lawyer_list, many=True)
+        # Check if wilaya is "Alger"
+        if wilaya.lower() == 'alger':
+            lawyer_list = lawyer_list.exclude(location__icontains='Algérie')
+        else:
+            # Filter lawyers based on the provided wilaya
+            lawyer_list = lawyer_list.filter(location__icontains=wilaya)
+
+        # Filter Lawyer objects by each category using the "and" condition
+        for category in categories:
+            lawyer_list = lawyer_list.filter(specialities__name=category)
+
+        # Serialize the queryset of Lawyer objects
+        serializer = LawyerSerializer(lawyer_list.distinct(), many=True)
+
+        # Return serialized data as a response
         return Response(serializer.data)
+
 
 
 
