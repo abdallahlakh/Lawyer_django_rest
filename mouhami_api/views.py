@@ -1,16 +1,11 @@
-from rest_framework import generics, viewsets
-from .models import Lawyer,Booking,Review
+from .models import Lawyer
 from mouhami_api.models import Language, Lawyer, Specialities
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import json
 import random
-from .serializers import LawyerSerializer,BookingSerializer,ReviewSerializer,LanguageSerializer, SpecialitiesSerializer
-from django.db.models import Q
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from .models import Lawyer
 from .serializers import LawyerSerializer
+from django.db.models import Q
 
 
 
@@ -58,16 +53,24 @@ def lawyerData(request):
             lawyer_instance.specialities.set(speciality_instances)
 
         return Response({"data inserted to the database successfully!!"})
- 
+    
+
+
+
 @api_view(['POST'])
 def searchLawyer(request):
     if request.method == 'POST':
+        # Retrieve search parameters from request data
         name = request.data.get('lawyerName', '')
         wilaya = request.data.get('wilaya', '')
         langue = request.data.get('language', '')
-        categories_str = request.data.get('specialities', '') 
+        categories_str = request.data.get('specialities', '')  # Receive as comma-separated string
         categories = [category.strip() for category in categories_str.split(',') if category.strip()]
+        
+        # Initialize queryset with all lawyers
         lawyer_list = Lawyer.objects.all()
+
+        # Filter Lawyer objects based on search parameters
         lawyer_list = lawyer_list.filter(
             Q(name__icontains=name) &
             Q(languages__name__icontains=langue)
@@ -75,6 +78,7 @@ def searchLawyer(request):
 
         # Check if wilaya is "Alger"
         if wilaya.lower() == 'alger':
+            # Exclude lawyers located in "Algérie" (Algiers)
             lawyer_list = lawyer_list.exclude(location__icontains='Algérie')
         else:
             # Filter lawyers based on the provided wilaya
@@ -89,7 +93,5 @@ def searchLawyer(request):
 
         # Return serialized data as a response
         return Response(serializer.data)
-
-
 
 
