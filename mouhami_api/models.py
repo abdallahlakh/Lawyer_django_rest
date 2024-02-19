@@ -8,12 +8,12 @@ class Language(models.Model):
 class Specialities(models.Model):
     name = models.CharField(max_length=255, unique=True,primary_key=True)
 
-class Review(models.Model):
-    reviewer_id = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    rating = models.FloatField()
-    comment = models.TextField()
-    booking = models.ForeignKey('Booking', on_delete=models.CASCADE)
-    lawyer_id = models.ForeignKey('Lawyer', on_delete=models.CASCADE)
+# class Review(models.Model):
+#     reviewer_id = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+#     rating = models.FloatField()
+#     comment = models.TextField()
+#     booking = models.ForeignKey('Booking', on_delete=models.CASCADE)
+#     lawyer_id = models.ForeignKey('Lawyer', on_delete=models.CASCADE)
 
 
 class Lawyer(models.Model):
@@ -27,12 +27,11 @@ class Lawyer(models.Model):
     lat = models.FloatField(null=True, blank=True)
     specialities = models.ManyToManyField('Specialities', blank=True)
     rating = models.FloatField(null=True, blank=True)
-    reviews = models.ManyToManyField('Review', blank=True,null=True)
     languages = models.ManyToManyField('Language', blank=True)
 
-class Booking(models.Model):
-    lawyer_id = models.ForeignKey('Lawyer', on_delete=models.CASCADE)
-    client_id = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    date = models.DateField()
-    time = models.TimeField()
+# class Booking(models.Model):
+#     lawyer_id = models.ForeignKey('Lawyer', on_delete=models.CASCADE)
+#     client_id = models.ForeignKey('auth.User', on_delete=models.CASCADE)
+#     date = models.DateField()
+#     time = models.TimeField()
     
