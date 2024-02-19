@@ -1,20 +1,9 @@
 from rest_framework import serializers
-from .models import Lawyer,Booking,Review,Language,Specialities
+from .models import Lawyer,Language,Specialities
 
 class LawyerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lawyer
-        fields = '__all__'
-
-class BookingSerializer(serializers.ModelSerializer):
-    class Meta :
-        model = Booking
-        fields = '__all__'
-
-
-class ReviewSerializer(serializers.ModelSerializer):
-    class Meta :
-        model = Review
         fields = '__all__'
 
 
