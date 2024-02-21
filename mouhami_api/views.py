@@ -60,6 +60,7 @@ def lawyerData(request):
 @api_view(['POST'])
 def searchLawyer(request):
     if request.method == 'POST':
+        print("this is lawyer ",request.data)
         # Retrieve search parameters from request data
         name = request.data.get('lawyerName', '')
         wilaya = request.data.get('wilaya', '')
@@ -95,3 +96,20 @@ def searchLawyer(request):
         return Response(serializer.data)
 
 
+
+
+
+@api_view(['GET'])  # Decorator placed above the function definition
+def lawyerDetail(request, id):
+    if request.method == 'GET':
+        try:
+            # Retrieve Lawyer object by id
+            lawyer = Lawyer.objects.get(id=id)
+
+            # Serialize the Lawyer object
+            serializer = LawyerSerializer(lawyer)
+
+            # Return serialized data as a response
+            return Response(serializer.data)
+        except Lawyer.DoesNotExist:
+            return JsonResponse({"error": "Lawyer not found"}, status=404)
